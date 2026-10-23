@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="description" content="Modern global weather application">
+   <meta name="theme-color" content="#0b1220">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+   <title>Weather App</title>
+   <link rel="stylesheet" href="style.css">
+   <link rel="manifest" href="manifest.json">
+   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+</head>
+
+<body>
+
+   <main class="app">
+      <header class="header">
+         <div>
+            <h1>Weather</h1>
+            <p>Global Weather Forecast</p>
+         </div>
+         <div class="header-icon">🌤️</div>
+      </header>
+
+      <section class="search-section">
+         <div class="search-box">
+            <input type="text" id="city" placeholder="Search city..." autocomplete="off">
+            <button id="searchBtn">Search</button>
+         </div>
+         <button id="locationBtn" class="location-btn">Current Location</button>
+      </section>
+
+      <section class="recent-searches-section" id="recentSearchesSection">
+         <div class="section-title">
+            <h2>Recent Searches</h2>
+            <button type="button" id="clearHistoryBtn" class="clear-history-btn">Clear All</button>
+         </div>
+         <div id="recentSearchesList" class="recent-searches-list"></div>
+      </section>
+
+      <div id="loading" class="loading">Loading weather...</div>
+      <div id="error" class="error"></div>
+
+      <section id="weather" class="weather">
+         <div class="current-weather">
+            <div class="location">
+               <h2 id="cityName">City</h2>
+            </div>
+            <div class="main-weather">
+               <img id="icon" src="" alt="Weather">
+               <div>
+                  <h2 id="temp">--°C</h2>
+                  <div class="temperature-switch">
+                     <button id="celsiusBtn" class="unit-btn active">°C</button>
+                     <span>/</span>
+                     <button id="fahrenheitBtn" class="unit-btn">°F</button>
+                  </div>
+                  <p id="condition">--</p>
+               </div>
+            </div>
+
+            <div class="weather-details">
+               <div class="detail-card">
+                  <span>💧</span>
+                  <h4>Humidity</h4>
+                  <p id="humidity">--%</p>
+               </div>
+               <div class="detail-card">
+                  <span>💨</span>
+                  <h4>Wind</h4>
+                  <p id="wind">-- km/h</p>
+               </div>
+               <div class="detail-card">
+                  <span>🌡️</span>
+                  <h4>Feels Like</h4>
+                  <p id="feelsLike">--°C</p>
+               </div>
+               <div class="detail-card">
+                  <span>☀️</span>
+                  <h4>UV Index</h4>
+                  <p id="uvIndex">--</p>
+               </div>
+               <div class="detail-card">
+                  <span>🌧️</span>
+                  <h4>Rain Chance</h4>
+                  <p id="rainChance">--%</p>
+               </div>
+               <div class="detail-card">
+                  <span>🧭</span>
+                  <h4>Wind Direction</h4>
+                  <p id="windDirection">-</p>
+               </div>
+            </div>
+
+            <div class="sun-section">
+               <div class="sun-card">
+                  <span>🌅</span>
+                  <div>
+                     <h4>Sunrise</h4>
+                     <p id="sunrise">--</p>
+                  </div>
+               </div>
+               <div class="sun-card">
+                  <span>🌇</span>
+                  <div>
+                     <h4>Sunset</h4>
+                     <p id="sunset">--</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div class="air-quality-section">
+            <h2>Air Quality</h2>
+            <div class="air-quality-main">
+               <div class="aqi-box">
+                  <span class="aqi-label">AQI</span>
+                  <strong id="aqiValue">--</strong>
+                  <span id="aqiStatus">Loading...</span>
+               </div>
+               <div class="air-quality-grid">
+                  <div class="air-card">
+                     <span>PM2.5</span>
+                     <strong id="pm25">--</strong>
+                     <small>µg/m³</small>
+                  </div>
+                  <div class="air-card">
+                     <span>PM10</span>
+                     <strong id="pm10">--</strong>
+                     <small>µg/m³</small>
+                  </div>
+                  <div class="air-card">
+                     <span>CO</span>
+                     <strong id="co">--</strong>
+                     <small>µg/m³</small>
+                  </div>
+                  <div class="air-card">
+                     <span>NO₂</span>
+                     <strong id="no2">--</strong>
+                     <small>µg/m³</small>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <section class="alerts-section" id="alertsSection">
+            <div class="section-title">
+               <h2>Weather Alerts</h2>
+               <span>Weather Warning</span>
+            </div>
+            <div id="alertsContainer" class="alerts-container">
+               <div class="no-alert">No weather alerts</div>
+            </div>
+         </section>
+
+         <section class="hourly-section">
+            <div class="section-title">
+               <h2>Hourly Forecast</h2>
+               <span>Next 24 Hours</span>
+            </div>
+            <div id="hourlyContainer" class="hourly-container"></div>
+         </section>
+
+         <section class="favorite-cities-section">
+            <div class="section-title">
+               <h2>Favorite Cities</h2>
+               <span>Save your favorite locations</span>
+            </div>
+            <div class="favorite-search">
+               <input type="text" id="favoriteCityInput" placeholder="Search city..." autocomplete="off">
+               <button id="addFavoriteBtn" type="button">+ Add City</button>
+            </div>
+            <div id="favoriteSearchResults" class="favorite-search-results"></div>
+            <div id="favoriteCitiesList" class="favorite-cities-list"></div>
+         </section>
+
+         <section class="temperature-chart-section">
+            <div class="section-title">
+               <h2>7-Day Temperature</h2>
+               <span>Temperature Trend</span>
+            </div>
+            <div class="chart-wrapper">
+               <canvas id="temperatureChart"></canvas>
+            </div>
+         </section>
+
+         <section class="forecast-section">
+            <div class="section-title">
+               <h2>7-Day Forecast</h2>
+               <p>Today and the next 6 days</p>
+            </div>
+            <div id="forecastContainer" class="forecast-container"></div>
+         </section>
+
+         <section class="map-section">
+            <div class="section-title">
+               <h2>Weather Map</h2>
+               <span>Location</span>
+            </div>
+            <div id="weatherMap" class="weather-map"></div>
+            <p id="mapStatus" class="map-status">Search a city or use current location to show the map.</p>
+         </section>
+
+         <section class="notifications-section">
+            <div class="section-title">
+               <h2>Advanced Notifications</h2>
+               <span>Alerts Settings</span>
+            </div>
+            <div class="notif-grid">
+               <label class="notif-item">
+                  <input type="checkbox" id="notifRain" checked>
+                  <span>Rain Alert</span>
+               </label>
+               <label class="notif-item">
+                  <input type="checkbox" id="notifHeat" checked>
+                  <span>High Temperature</span>
+               </label>
+               <label class="notif-item">
+                  <input type="checkbox" id="notifCold" checked>
+                  <span>Low Temperature</span>
+               </label>
+               <label class="notif-item">
+                  <input type="checkbox" id="notifWind" checked>
+                  <span>Strong Wind</span>
+               </label>
+               <label class="notif-item">
+                  <input type="checkbox" id="notifStorm" checked>
+                  <span>Thunderstorm</span>
+               </label>
+            </div>
+            <div class="notif-thresholds">
+               <div class="threshold-row">
+                  <label>Heat threshold (°C)</label>
+                  <input type="number" id="heatThreshold" value="40" min="30" max="50">
+               </div>
+               <div class="threshold-row">
+                  <label>Cold threshold (°C)</label>
+                  <input type="number" id="coldThreshold" value="-10" min="-40" max="5">
+               </div>
+               <div class="threshold-row">
+                  <label>Wind threshold (km/h)</label>
+                  <input type="number" id="windThreshold" value="50" min="20" max="120">
+               </div>
+            </div>
+            <button type="button" id="enableNotifBtn" class="location-btn">Enable Browser Notifications</button>
+            <p id="notifPermissionStatus" class="map-status"></p>
+         </section>
+
+         <section class="settings-section">
+            <div class="section-title">
+               <h2>Settings</h2>
+               <span>Units & Preferences</span>
+            </div>
+            <div class="settings-grid">
+               <div class="setting-card">
+                  <h4>Temperature Unit</h4>
+                  <div class="temperature-switch">
+                     <button type="button" id="settingsC" class="unit-btn active">°C</button>
+                     <span>/</span>
+                     <button type="button" id="settingsF" class="unit-btn">°F</button>
+                  </div>
+               </div>
+               <div class="setting-card">
+                  <h4>Wind Speed Unit</h4>
+                  <div class="temperature-switch">
+                     <button type="button" id="windKmh" class="unit-btn active">km/h</button>
+                     <span>/</span>
+                     <button type="button" id="windMph" class="unit-btn">mph</button>
+                  </div>
+               </div>
+            </div>
+            <p class="settings-note">Settings are saved automatically and applied across the whole app.</p>
+         </section>
+
+         <section class="ai-section">
+            <div class="section-title">
+               <h2>AI Weather Assistant</h2>
+               <span>Ask about the weather</span>
+            </div>
+            <div id="aiChat" class="ai-chat">
+               <div class="ai-message ai-bot">Hello! I can answer questions about the current weather, forecast, rain chance, wind, and more using live data from this app.</div>
+            </div>
+            <div class="ai-input-row">
+               <input type="text" id="aiInput" placeholder="Ask e.g. Will it rain today?" autocomplete="off">
+               <button type="button" id="aiSendBtn">Ask</button>
+            </div>
+         </section>
+      </section>
+
+      <footer class="footer">
+         <p>Weather App • Global Forecast</p>
+         <p>Powered by Open-Meteo</p>
+         <button type="button" id="installBtn" class="install-btn" style="display:none;">Install App</button>
+      </footer>
+   </main>
+
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+   <script src="script.js"></script>
+</body>
+
+</html>
